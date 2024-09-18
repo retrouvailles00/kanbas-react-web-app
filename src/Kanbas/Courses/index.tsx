@@ -15,12 +15,12 @@ export default function Courses() {
                     </td>
                     <td valign="top">
                         <Routes>
-                            <Route path="/" element={<Navigate to="/1234/Home" />} />
-                            <Route path="/1234/Home" element={<Home />} />
-                            <Route path="/1234/Modules" element={<Modules />} />
-                            <Route path="/1234/Assignments" element={<Assignments />} />
-                            <Route path="/1234/Assignments/:aid" element={<AssignmentEditor />} />
-                            <Route path="/1234/People" element={<h2>People</h2>} />
+                            <Route path="/" element={<Navigate to="/" />} />
+                            <Route path="Home" element={<Home />} />
+                            <Route path="Modules" element={<Modules />} />
+                            <Route path="Assignments" element={<Assignments />} />
+                            <Route path="Assignments/:aid" element={<AssignmentEditor />} />
+                            <Route path="People" element={<h2>People</h2>} />
                         </Routes>
                     </td>
                 </tr>

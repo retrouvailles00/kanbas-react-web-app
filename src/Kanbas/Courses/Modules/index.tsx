@@ -6,7 +6,9 @@ export default function Modules() {
                 <div className="wd-button-list">
                     <button>Collapse All</button>
                     <button>View Progress</button>
-                    <button>Publish All</button>
+                    <select>
+                        <option value="publish-all" selected>Publish All</option>
+                    </select>
                     <button>+Module</button>
                 </div>
                 <li className="wd-module">
