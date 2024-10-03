@@ -25,7 +25,17 @@ body * {  font-family: Arial, Helvetica, sans-serif;  }
 
 
 .list-group.wd > .list-group-item.active {
-    color: black;
+    color: black !important;
     background-color: white;
     border-left: 3px solid black !important;
+}
+
+.nav-icon.active {
+    background-color: white !important;
+    color: red !important;
+}
+
+.nav-account.active {
+    background-color: white !important;
+    color: red !important;
 }

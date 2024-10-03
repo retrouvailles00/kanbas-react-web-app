@@ -27,7 +27,7 @@ export default function TOC() {
                 </a>
             </li>
             <li className="nav-item">
-                <a id="wd-k" href="#/Kanbas" className="nav-link">
+                <a id="wd-k" href="#/Kanbas/Dashboard" className="nav-link">
                     Kanbas
                 </a>
             </li>
