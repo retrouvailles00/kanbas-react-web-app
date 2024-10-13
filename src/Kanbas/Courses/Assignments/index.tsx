@@ -4,7 +4,12 @@ import {IoEllipsisVertical} from "react-icons/io5";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { PiNotePencil } from "react-icons/pi";
 import GreenCheckmark from "../Modules/GreenCheckmark";
+import { useParams } from "react-router";
+import * as db from "../../Database";
 export default function Assignments() {
+    const { cid } = useParams();
+    const modules = db.modules;
+    const assignments = db.assignments;
     return (
         <div id="wd-assignments">
             <ul id="wd-modules" className="list-group rounded-0">
@@ -49,57 +54,32 @@ export default function Assignments() {
                     </div>
 
                     <ul className="wd-lessons list-group rounded-0">
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/1" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A1</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 6 at 12:00am |
+                        {assignments
+                            .filter((assignment: any) => assignment.course === cid)
+                            .map((assignment: any) => (
+                                <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
+                                    <div className="d-flex align-items-center">
+                                        <BsGripVertical className="me-2 fs-3"/>
+                                        <PiNotePencil className="me-2 fs-3" color="green"/>
+                                        <div>
+                                            <a className="wd-assignment-link" href={`#/Kanbas/Courses/${assignment.course}/Assignments/${assignment._id}`}
+                                               style={{
+                                                   color: "black",
+                                                   fontWeight: "bold",
+                                                   textDecoration: "none"
+                                               }}>{assignment.title}</a>
+                                            <div><span className="text-danger">Multiple Modules</span> |
+                                                Not Available Until {assignment.availableDate} at 12:00am |
+                                            </div>
+                                            <div>Due {assignment.dueDate} at 11:59pm | {assignment.totalPoints}</div>
+                                        </div>
                                     </div>
-                                    <div>Due May 13 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/2" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A2</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 13 at 12:00am |
+                                    <div className="float-end">
+                                        <GreenCheckmark/>
+                                        <IoEllipsisVertical className="fs-4"/>
                                     </div>
-                                    <div>Due May 20 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/3" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A3</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 20 at 12:00am |
-                                    </div>
-                                    <div>Due May 27 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
+                                </li>
+                            ))}
                     </ul>
                 </li>
             </ul>
