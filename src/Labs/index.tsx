@@ -3,13 +3,25 @@ import TOC from "./TOC";
 import Lab1 from "./Lab1";
 import Lab2 from "./Lab2";
 import Lab3 from "./Lab3";
+import Lab4 from "./Lab4";
+import store from "./store";
+import { Provider } from "react-redux";
 export default function Labs() {
     return (
-        <div>
-            <h1>Rui Liu</h1>
-            <a id="wd-github" href="https://github.com/retrouvailles00/kanbas-react-web-app">Github</a>
-            <h1>Labs</h1>
-            <TOC/>
-        </div>
-    );
+        <Provider store={store}>
+            <div className="container-fluid">
+                <h1>Rui Liu</h1>
+                <a id="wd-github" href="https://github.com/retrouvailles00/kanbas-react-web-app">Github</a>
+                <h1>Labs</h1>
+                <TOC/>
+                <Routes>
+                    <Route path="/Lab1" element={<Lab1/>}/>
+                    <Route path="/Lab2" element={<Lab2/>}/>
+                    <Route path="/Lab3" element={<Lab3/>}/>
+                    <Route path="/Lab4" element={<Lab4/>}/>
+                    {/* Add other routes here */}
+                </Routes>
+            </div>
+        </Provider>
+);
 }

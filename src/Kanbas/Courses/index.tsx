@@ -7,13 +7,14 @@ import AssignmentEditor from "./Assignments/Editor";
 import {FaAlignJustify} from "react-icons/fa6";
 import PeopleTable from "./People/Table";
 import { courses } from "../Database";
-export default function Courses() {
+export default function Courses({ courses }: { courses: any[]; }) {
+
     const { cid } = useParams();
     const course = courses.find((course) => course._id === cid);
     const { pathname } = useLocation();
 
     return (
-        <div id="wd-courses">
+        <div id="wd-courses" style={{marginLeft: '120px'}}>
             <h2 className="text-danger">
                 <FaAlignJustify className="me-4 fs-4 mb-1"/>
                 {course && course.name} &gt; {pathname.split("/")[4]}

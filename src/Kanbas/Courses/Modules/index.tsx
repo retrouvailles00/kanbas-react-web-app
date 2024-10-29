@@ -2,25 +2,57 @@ import ModulesControls from "./ModulesControls";
 import {BsGripVertical} from "react-icons/bs";
 import ModuleControlButtons from "./ModuleControlButtons";
 import LessonControlButtons from "./LessonControlButtons";
-import { GrLink } from "react-icons/gr";
-import { LuFileInput } from "react-icons/lu";
 import { useParams } from "react-router";
+import React, { useState } from "react";
+import { addModule, editModule, updateModule, deleteModule }
+    from "./reducer";
+import { useSelector, useDispatch } from "react-redux";
 import * as db from "../../Database";
 
 export default function Modules() {
     const { cid } = useParams();
-    const modules = db.modules;
+    const [moduleName, setModuleName] = useState("");
+    const { modules } = useSelector((state: any) => state.modulesReducer);
+    const dispatch = useDispatch();
+    const { currentUser } = useSelector((state: any) => state.accountReducer);
+
     return (
         <div>
-            <ModulesControls/><br/><br/><br/><br/>
-            <ul id="wd-modules" className="list-group rounded-0">
+            <ModulesControls setModuleName={setModuleName} moduleName={moduleName} addModule={() => {
+                dispatch(addModule({ name: moduleName, course: cid }));
+                setModuleName("");
+            }} />
+            <ul id="wd-modules" className="list-group rounded-0 pt-5">
                 {modules
                     .filter((module: any) => module.course === cid)
                     .map((module: any) => (
                         <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
-                            <div className="wd-title p-3 ps-2 bg-secondary">
-                                <BsGripVertical className="me-2 fs-3" /> {module.name} <ModuleControlButtons />
-                            </div>
+                            {currentUser && currentUser.role === "FACULTY" && (
+                                <div className="wd-title p-3 ps-2 bg-secondary">
+                                    <BsGripVertical className="me-2 fs-3" />
+                                    {!module.editing && module.name}
+                                    { module.editing && (
+                                        <input className="form-control w-50 d-inline-block"
+                                               onChange={(e) =>
+                                                   dispatch(
+                                                       updateModule({ ...module, name: e.target.value })
+                                                   )
+                                               }
+                                               onKeyDown={(e) => {
+                                                   if (e.key === "Enter") {
+                                                       dispatch(updateModule({ ...module, editing: false }));
+                                                   }
+                                               }}
+                                               defaultValue={module.name} />
+                                    )}
+
+                                    <ModuleControlButtons moduleId={module._id}
+                                                          deleteModule={(moduleId) => {
+                                                              dispatch(deleteModule(moduleId));
+                                                          }}
+                                                          editModule={(moduleId) => dispatch(editModule(moduleId))} />
+                                </div>
+                            )}
                             {module.lessons && (
                                 <ul className="wd-lessons list-group rounded-0">
                                     {module.lessons.map((lesson: any) => (
@@ -34,5 +66,5 @@ export default function Modules() {
                     ))}
             </ul>
         </div>
-    );
+);
 }
