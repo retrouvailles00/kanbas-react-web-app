@@ -1,8 +1,9 @@
 import {Link, useNavigate} from "react-router-dom";
-import { useSelector } from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import * as db from "./Database";
 
 import React, { useState } from "react";
+import enrollmentReducer, {enroll, unenroll} from "./enrollmentReducer";
 
 export default function Dashboard({ courses, course, setCourse, addNewCourse,
                                       deleteCourse, updateCourse }: {
@@ -11,8 +12,9 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
     updateCourse: () => void; }) {
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { currentUser } = useSelector((state: any) => state.accountReducer);
-    const [enrollments, setEnrollments] = useState(db.enrollments);
+    const { enrollments } = useSelector((state: any) => state.enrollmentReducer);
     const [enrollmentDisplayed, switchEnrollmentDisplayed] = useState(false);
     const toggleEnrollment = () => {
         switchEnrollmentDisplayed(enrollmentDisplayed => !enrollmentDisplayed);
@@ -28,29 +30,22 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
 
     const enrollCourse = (courseID: any) => {
         const newEnrollment = createEnrollmentObject(courseID);
-        setEnrollments(prevEnrollments => [...prevEnrollments, newEnrollment]);
+        dispatch(enroll(newEnrollment));
     }
 
     const unenrollCourse = (courseID: any) => {
         const userID = currentUser._id;
-        const enrollmentIndex = enrollments.findIndex(enrollment =>
+        const enrollmentIndex = enrollments.findIndex((enrollment: any) =>
             enrollment.user === userID && enrollment.course === courseID
         );
 
         if (enrollmentIndex === -1) {
             console.log('User is not enrolled in this course.');
-            return; // Handle case where the user is not enrolled
+            return;
         }
-
-        // Create a new array without the enrollment
-        const updatedEnrollments = [
-            ...enrollments.slice(0, enrollmentIndex),
-            ...enrollments.slice(enrollmentIndex + 1)
-        ];
-        setEnrollments(updatedEnrollments);
+        console.log("enrollmentIndex: " + enrollmentIndex);
+        dispatch(unenroll(enrollmentIndex));
     }
-
-
 
     return (
         <div id="wd-dashboard" style={{marginLeft: '120px'}}>
@@ -89,13 +84,13 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
                 <div className="row row-cols-1 row-cols-md-5 g-4">
                     {courses.filter((course) =>
                             enrollmentDisplayed || enrollments.some(
-                                (enrollment) =>
+                                (enrollment: any) =>
                                     enrollment.user === currentUser._id &&
                                     enrollment.course === course._id
                             )
                     ).map((course) => {
                         const isEnrolled = enrollments.some(
-                            (enrollment) =>
+                            (enrollment: any) =>
                                 enrollment.user === currentUser._id &&
                                 enrollment.course === course._id
                         );
