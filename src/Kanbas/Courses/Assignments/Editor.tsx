@@ -3,6 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {useEffect, useState} from "react";
 import {updateAssignment} from "./reducer";
+import * as assignmentsClient from "./client";
 
 export default function AssignmentEditor() {
     const { cid, aid } = useParams();
@@ -18,10 +19,16 @@ export default function AssignmentEditor() {
         }
     }, [currentAssignment]);
 
-    const handleSave = () => {
+    // const handleSave = () => {
+    //     dispatch(updateAssignment(assignment));
+    //     navigate(`/Kanbas/Courses/${cid}/Assignments`);
+    // }
+    const saveAssignment = async (assignment: any) => {
+        await assignmentsClient.updateAssignment(assignment);
         dispatch(updateAssignment(assignment));
         navigate(`/Kanbas/Courses/${cid}/Assignments`);
     }
+
     if (!assignment) {
         return <div>Assignment not found</div>;
     }
@@ -145,7 +152,7 @@ export default function AssignmentEditor() {
                 <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-secondary me-2">
                     Cancel
                 </Link>
-                <button onClick={handleSave} id="wd-assignment-editor-save" className="btn btn-danger"> Save</button>
+                <button onClick={() => saveAssignment({...assignment})} id="wd-assignment-editor-save" className="btn btn-danger"> Save</button>
             </div>
         </div>
     );

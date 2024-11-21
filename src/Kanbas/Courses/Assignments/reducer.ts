@@ -3,15 +3,19 @@ import {assignments } from "../../Database";
 import {useParams} from "react-router";
 
 const initialState = {
-    assignments: assignments,
+    assignments: [],
 };
 
 const assignentsSlice = createSlice({
     name: "assignments",
     initialState,
     reducers: {
+        setAssignments: (state, action) => {
+            state.assignments = action.payload;
+        },
         addAssignment: (state, { payload: assignment }) => {
-            state.assignments.push(assignment);
+            // state.assignments.push(assignment);
+            state.assignments = [...state.assignments, assignment] as any;
         },
         deleteAssignment: (state, { payload: assignmentId }) => {
             state.assignments = state.assignments.filter(
@@ -24,6 +28,6 @@ const assignentsSlice = createSlice({
         },
     },
 });
-export const { addAssignment, deleteAssignment, updateAssignment } =
+export const { addAssignment, deleteAssignment, updateAssignment, setAssignments } =
     assignentsSlice.actions;
 export default assignentsSlice.reducer;

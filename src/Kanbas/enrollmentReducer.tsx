@@ -1,27 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { enrollments } from "./Database";
-import {useSelector} from "react-redux";
 
 const initialState = {
-    enrollments: enrollments,
+    enrolledCourses: [],
 };
 
 const enrollmentsSlice = createSlice({
-    name: "enrollments",
+    name: "enrolledCourses",
     initialState,
     reducers: {
-        enroll: (state, { payload: enrollment }) => {
-            state.enrollments = [...state.enrollments, enrollment] as any;
+        setEnrolledCourses: (state, action) => {
+            state.enrolledCourses = action.payload;
         },
-        unenroll: (state, { payload: enrollmentIndex }) => {
-            state.enrollments = [
-                ...state.enrollments.slice(0, enrollmentIndex),
-                ...state.enrollments.slice(enrollmentIndex + 1),
-            ];
+        enroll: (state, { payload: enrolledCourse }) => {
+            state.enrolledCourses = [...state.enrolledCourses, enrolledCourse] as any;
         },
+        unenroll: (state, { payload: courseId }) => {
+            state.enrolledCourses = state.enrolledCourses.filter(
+                (c: any) => c._id !== courseId);
+        }
     },
 });
 
-export const { enroll, unenroll } =
+export const { enroll, unenroll, setEnrolledCourses } =
     enrollmentsSlice.actions;
 export default enrollmentsSlice.reducer;

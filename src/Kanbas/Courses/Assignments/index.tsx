@@ -5,12 +5,16 @@ import GreenCheckmark from "../Modules/GreenCheckmark";
 import { useParams } from "react-router";
 import {useDispatch, useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
-import {addAssignment, deleteAssignment} from "./reducer";
-import {useState} from "react";
+import { addAssignment, deleteAssignment, setAssignments, updateAssignment } from "./reducer";
+import { useEffect } from "react";
 import {FaTrash} from "react-icons/fa";
+import * as assignmentsClient from "./client";
+import * as coursesClient from "../client";
+
 export default function Assignments() {
     const navigate = useNavigate();
     const { cid } = useParams();
+    
     const { assignments } = useSelector((state: any) => state.assignmentsReducer);
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state: any) => state.accountReducer);
@@ -20,7 +24,33 @@ export default function Assignments() {
         }
     };
 
-    const handleAddAssignment = () => {
+
+    const fetchAssignments = async () => {
+        const assignments = await coursesClient.findAssignmentsForCourse(cid as string);
+        dispatch(setAssignments(assignments));
+    };
+
+    useEffect(() => {
+        fetchAssignments();
+    }, []);
+
+    // const handleAddAssignment = () => {
+    //     const newId = assignments[assignments.length - 1]._id + "0";
+    //     const newAssignment = {
+    //         _id: newId,
+    //         title: "New Assignment",
+    //         course: cid,
+    //         description: "",
+    //         totalPoints: 0,
+    //         dueDate: "",
+    //         availableDate: ""
+    //     };
+    //     dispatch(addAssignment(newAssignment));
+    //     navigate(newId);
+    // }
+
+    const createAssignment = async () => {
+        if (!cid) return;
         const newId = assignments[assignments.length - 1]._id + "0";
         const newAssignment = {
             _id: newId,
@@ -31,16 +61,25 @@ export default function Assignments() {
             dueDate: "",
             availableDate: ""
         };
-        dispatch(addAssignment(newAssignment));
+        const assignment = await coursesClient.createAssignmentForCourse(cid, newAssignment);
+        dispatch(addAssignment(assignment));
         navigate(newId);
     }
 
-    const handleDelete = (assignmentID: any) => {
+    // const handleDelete = (assignmentID: any) => {
+    //     const confirmed = window.confirm("Are you sure you want to remove this assignment?");
+    //     if (confirmed) {
+    //         dispatch(deleteAssignment(assignmentID));
+    //     }
+    // }
+
+    const removeAssignment = async (assignmentId: any) => {
         const confirmed = window.confirm("Are you sure you want to remove this assignment?");
         if (confirmed) {
-            dispatch(deleteAssignment(assignmentID));
+            await assignmentsClient.deleteAssignment(assignmentId);
+            dispatch(deleteAssignment(assignmentId));
         }
-    }
+    };
 
     return (
         <div id="wd-assignments">
@@ -66,7 +105,7 @@ export default function Assignments() {
                                 Group
                             </button>
                             <button className="btn btn-danger d-flex align-items-center">
-                                <BsPlus className="fs-4 me-2" onClick={handleAddAssignment}/>
+                                <BsPlus className="fs-4 me-2" onClick={createAssignment}/>
                                 Assignment
                             </button>
                         </div>
@@ -97,7 +136,7 @@ export default function Assignments() {
                                         <PiNotePencil className="me-2 fs-3" color="green"/>
                                         <div>
                                             <a className="wd-assignment-link"
-                                               onClick={() => handleEditAssignment(assignment._id)}
+                                                onClick={() => handleEditAssignment(assignment._id)}
                                                style={{
                                                    color: "black",
                                                    fontWeight: "bold",
@@ -113,7 +152,7 @@ export default function Assignments() {
                                         <GreenCheckmark/>
                                         <IoEllipsisVertical className="fs-4"/>
                                         {currentUser && currentUser.role === "FACULTY" && (
-                                            <FaTrash className="fs-4" onClick={() => handleDelete(assignment._id)}></FaTrash>
+                                            <FaTrash className="fs-4" onClick={() => removeAssignment(assignment._id)}></FaTrash>
                                         )}
                                     </div>
                                 </li>

@@ -1,9 +1,10 @@
-import {Link, useNavigate} from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import * as db from "./Database";
-
-import React, { useState } from "react";
-import enrollmentReducer, {enroll, unenroll} from "./enrollmentReducer";
+import { useState, useEffect } from "react";
+import {enroll, unenroll, setEnrolledCourses} from "./enrollmentReducer";
+import * as userClient from "./Account/client";
+import * as enrollClient from "./client";
+import * as courseClient from "./Courses/client";
 
 export default function Dashboard({ courses, course, setCourse, addNewCourse,
                                       deleteCourse, updateCourse }: {
@@ -13,38 +14,82 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+   
+    const [displayedCourses, setDisplayedCourses] = useState<any[]>([]);
     const { currentUser } = useSelector((state: any) => state.accountReducer);
-    const { enrollments } = useSelector((state: any) => state.enrollmentReducer);
-    const [enrollmentDisplayed, switchEnrollmentDisplayed] = useState(false);
-    const toggleEnrollment = () => {
-        switchEnrollmentDisplayed(enrollmentDisplayed => !enrollmentDisplayed);
+    const { enrolledCourses } = useSelector((state: any) => state.enrollmentReducer);
+    const [enrollmentDisplayed, switchEnrollmentDisplayed] = useState(true);
+    
+    const toggleEnrollment = async () => {
+        const newEnrollmentDisplayed = !enrollmentDisplayed;
+        switchEnrollmentDisplayed(newEnrollmentDisplayed);
+        if (newEnrollmentDisplayed) {
+            setDisplayedCourses(enrolledCourses);
+        } else {
+            const unenrolledCourses = await userClient.findUnenrolledCourses(currentUser._id);
+            setDisplayedCourses(unenrolledCourses);
+        }
     };
 
-    const createEnrollmentObject = (courseID: any) => {
+    const fetchEnrolledCourses = async () => {
+        let enrolledCourses = [];
+        try {
+            enrolledCourses = await userClient.findMyCourses(currentUser._id);
+            dispatch(setEnrolledCourses(enrolledCourses));
+        } catch (error) {
+            console.error(error);
+        }
+        setDisplayedCourses(enrolledCourses);
+    };
+
+    useEffect(() => {
+        fetchEnrolledCourses();
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (enrollmentDisplayed) {
+            setDisplayedCourses(enrolledCourses);
+        } else {
+
+        }
+    }, [enrolledCourses, enrollmentDisplayed]);
+
+    const createEnrollmentObject = (courseId: any) => {
         return {
-            _id: (enrollments.length + 1).toString(),
+            _id: new Date().getTime().toString(),
             user: currentUser._id,
-            course: courseID,
+            course: courseId,
         };
     };
 
-    const enrollCourse = (courseID: any) => {
-        const newEnrollment = createEnrollmentObject(courseID);
-        dispatch(enroll(newEnrollment));
+    const enrollCourse = async (courseId: any) => {
+        const newEnrollment = createEnrollmentObject(courseId);
+        try {
+            const enrolledCourse = await courseClient.fetchCourse(courseId);
+            const newEnrolledCourse = Array.isArray(enrolledCourse) ? enrolledCourse[0] : enrolledCourse;
+            await enrollClient.createEnrollment(newEnrollment);
+            dispatch(enroll(newEnrolledCourse));
+
+            const updatedDisplayList = displayedCourses.filter(
+                (c: any) => c._id !== courseId);
+            setDisplayedCourses(updatedDisplayList);
+        } catch (error) {
+            console.error('Error enrolling in course:', error);
+        }
     }
 
-    const unenrollCourse = (courseID: any) => {
-        const userID = currentUser._id;
-        const enrollmentIndex = enrollments.findIndex((enrollment: any) =>
-            enrollment.user === userID && enrollment.course === courseID
-        );
+    const unenrollCourse = async (courseId: any) => {
+        try {
+            await enrollClient.deleteEnrollment(courseId, currentUser._id);
+            dispatch(unenroll(courseId));
+            console.log(enrolledCourses.length);
+            const updatedDisplayList = displayedCourses.filter(
+                (c: any) => c._id !== courseId);
+            setDisplayedCourses(updatedDisplayList);
 
-        if (enrollmentIndex === -1) {
-            console.log('User is not enrolled in this course.');
-            return;
+        } catch (error) {
+            console.error('Error unenroll in course:', error);
         }
-        console.log("enrollmentIndex: " + enrollmentIndex);
-        dispatch(unenroll(enrollmentIndex));
     }
 
     return (
@@ -77,50 +122,37 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
                 </div>
             )}
 
-            <h2 id="wd-dashboard-published">Published Courses ({courses.length})</h2>
+            <h2 id="wd-dashboard-published">Published Courses ({displayedCourses.length})</h2>
             <hr/>
 
             <div id="wd-dashboard-courses" className="row">
                 <div className="row row-cols-1 row-cols-md-5 g-4">
-                    {courses.filter((course) =>
-                            enrollmentDisplayed || enrollments.some(
-                                (enrollment: any) =>
-                                    enrollment.user === currentUser._id &&
-                                    enrollment.course === course._id
-                            )
-                    ).map((course) => {
-                        const isEnrolled = enrollments.some(
-                            (enrollment: any) =>
-                                enrollment.user === currentUser._id &&
-                                enrollment.course === course._id
-                        );
-
+                    {displayedCourses.map((displayedCourse: any) => {
                         return (
-                            <div className="wd-dashboard-course col" style={{width: "300px"}} key={course._id}>
+                            <div className="wd-dashboard-course col" style={{ width: "300px" }} key={displayedCourse._id}>
                                 <div className="card rounded-3 overflow-hidden">
-                                    <img src={course.image} width="100%" height={160} alt={course.name}/>
+                                    <img src={displayedCourse.image} width="100%" height={160} alt={displayedCourse.name}/>
                                     <div className="card-body">
                                         <h5 className="wd-dashboard-course-title card-title">
-                                            {course.name}
+                                            {displayedCourse.name}
                                         </h5>
                                         <p className="wd-dashboard-course-title card-text overflow-y-hidden"
                                            style={{maxHeight: 100}}>
-                                            {course.description}
+                                            {displayedCourse.description}
                                         </p>
                                         <button className="btn btn-primary" onClick={() => {
-                                            navigate(`/Kanbas/Courses/${course._id}/Home`);
+                                            navigate(`/Kanbas/Courses/${displayedCourse._id}/Home`);
                                         }}> Go
                                         </button>
 
                                         {currentUser && currentUser.role === "STUDENT" && (
                                             <button
                                                 onClick={(event) => {
-                                                    event.preventDefault();
-                                                    isEnrolled ? unenrollCourse(course._id) : enrollCourse(course._id);
+                                                    enrollmentDisplayed ? unenrollCourse(displayedCourse._id) : enrollCourse(displayedCourse._id);
                                                 }}
-                                                className={`btn ${isEnrolled ? 'btn-danger' : 'btn-success'} float-end`}
+                                                className={`btn ${enrollmentDisplayed ? 'btn-danger' : 'btn-success'} float-end`}
                                                 id="wd-delete-course-click">
-                                                {isEnrolled ? 'Unenroll' : 'Enroll'}
+                                                {enrollmentDisplayed ? 'Unenroll' : 'Enroll'}
                                             </button>
                                         )}
 
@@ -128,7 +160,7 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
                                             <>
                                                 <button onClick={(event) => {
                                                     event.preventDefault();
-                                                    deleteCourse(course._id);
+                                                    deleteCourse(displayedCourse._id);
                                                 }} className="btn btn-danger float-end"
                                                         id="wd-delete-course-click">
                                                     Delete
@@ -137,7 +169,7 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
                                                 <button id="wd-edit-course-click"
                                                         onClick={(event) => {
                                                             event.preventDefault();
-                                                            setCourse(course);
+                                                            setCourse(displayedCourse);
                                                         }}
                                                         className="btn btn-warning me-2 float-end">
                                                     Edit
