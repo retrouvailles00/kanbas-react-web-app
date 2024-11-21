@@ -1,10 +1,86 @@
 import {BsGripVertical, BsPlus} from "react-icons/bs";
-import ModuleControlButtons from "../Modules/ModuleControlButtons";
 import {IoEllipsisVertical} from "react-icons/io5";
-import LessonControlButtons from "../Modules/LessonControlButtons";
 import { PiNotePencil } from "react-icons/pi";
 import GreenCheckmark from "../Modules/GreenCheckmark";
+import { useParams } from "react-router";
+import {useDispatch, useSelector} from "react-redux";
+import {useNavigate} from "react-router-dom";
+import { addAssignment, deleteAssignment, setAssignments, updateAssignment } from "./reducer";
+import { useEffect } from "react";
+import {FaTrash} from "react-icons/fa";
+import * as assignmentsClient from "./client";
+import * as coursesClient from "../client";
+
 export default function Assignments() {
+    const navigate = useNavigate();
+    const { cid } = useParams();
+    
+    const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+    const dispatch = useDispatch();
+    const { currentUser } = useSelector((state: any) => state.accountReducer);
+    const handleEditAssignment = (assignmentID: any) => {
+        if (currentUser && currentUser.role === "FACULTY") {
+            navigate(assignmentID)
+        }
+    };
+
+
+    const fetchAssignments = async () => {
+        const assignments = await coursesClient.findAssignmentsForCourse(cid as string);
+        dispatch(setAssignments(assignments));
+    };
+
+    useEffect(() => {
+        fetchAssignments();
+    }, []);
+
+    // const handleAddAssignment = () => {
+    //     const newId = assignments[assignments.length - 1]._id + "0";
+    //     const newAssignment = {
+    //         _id: newId,
+    //         title: "New Assignment",
+    //         course: cid,
+    //         description: "",
+    //         totalPoints: 0,
+    //         dueDate: "",
+    //         availableDate: ""
+    //     };
+    //     dispatch(addAssignment(newAssignment));
+    //     navigate(newId);
+    // }
+
+    const createAssignment = async () => {
+        if (!cid) return;
+        const newId = assignments[assignments.length - 1]._id + "0";
+        const newAssignment = {
+            _id: newId,
+            title: "New Assignment",
+            course: cid,
+            description: "",
+            totalPoints: 0,
+            dueDate: "",
+            availableDate: ""
+        };
+        const assignment = await coursesClient.createAssignmentForCourse(cid, newAssignment);
+        dispatch(addAssignment(assignment));
+        navigate(newId);
+    }
+
+    // const handleDelete = (assignmentID: any) => {
+    //     const confirmed = window.confirm("Are you sure you want to remove this assignment?");
+    //     if (confirmed) {
+    //         dispatch(deleteAssignment(assignmentID));
+    //     }
+    // }
+
+    const removeAssignment = async (assignmentId: any) => {
+        const confirmed = window.confirm("Are you sure you want to remove this assignment?");
+        if (confirmed) {
+            await assignmentsClient.deleteAssignment(assignmentId);
+            dispatch(deleteAssignment(assignmentId));
+        }
+    };
+
     return (
         <div id="wd-assignments">
             <ul id="wd-modules" className="list-group rounded-0">
@@ -22,16 +98,18 @@ export default function Assignments() {
                     </div>
 
                     {/* Buttons */}
-                    <div className="d-flex">
-                        <button className="btn btn-secondary d-flex align-items-center me-2">
-                            <BsPlus className="fs-4 me-2"/>
-                            Group
-                        </button>
-                        <button className="btn btn-danger d-flex align-items-center">
-                            <BsPlus className="fs-4 me-2"/>
-                            Assignment
-                        </button>
-                    </div>
+                    {currentUser && currentUser.role === "FACULTY" && (
+                        <div className="d-flex">
+                            <button className="btn btn-secondary d-flex align-items-center me-2">
+                                <BsPlus className="fs-4 me-2"/>
+                                Group
+                            </button>
+                            <button className="btn btn-danger d-flex align-items-center">
+                                <BsPlus className="fs-4 me-2" onClick={createAssignment}/>
+                                Assignment
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
@@ -49,57 +127,36 @@ export default function Assignments() {
                     </div>
 
                     <ul className="wd-lessons list-group rounded-0">
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/1" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A1</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 6 at 12:00am |
+                        {assignments
+                            .filter((assignment: any) => assignment.course === cid)
+                            .map((assignment: any) => (
+                                <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
+                                    <div className="d-flex align-items-center">
+                                        <BsGripVertical className="me-2 fs-3"/>
+                                        <PiNotePencil className="me-2 fs-3" color="green"/>
+                                        <div>
+                                            <a className="wd-assignment-link"
+                                                onClick={() => handleEditAssignment(assignment._id)}
+                                               style={{
+                                                   color: "black",
+                                                   fontWeight: "bold",
+                                                   textDecoration: "none"
+                                               }}>{assignment.title}</a>
+                                            <div><span className="text-danger">Multiple Modules</span> |
+                                                Not Available Until {assignment.availableDate} at 12:00am |
+                                            </div>
+                                            <div>Due {assignment.dueDate} at 11:59pm | {assignment.totalPoints}</div>
+                                        </div>
                                     </div>
-                                    <div>Due May 13 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/2" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A2</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 13 at 12:00am |
+                                    <div className="float-end">
+                                        <GreenCheckmark/>
+                                        <IoEllipsisVertical className="fs-4"/>
+                                        {currentUser && currentUser.role === "FACULTY" && (
+                                            <FaTrash className="fs-4" onClick={() => removeAssignment(assignment._id)}></FaTrash>
+                                        )}
                                     </div>
-                                    <div>Due May 20 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
-                        <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
-                            <div className="d-flex align-items-center">
-                                <BsGripVertical className="me-2 fs-3"/>
-                                <PiNotePencil className="me-2 fs-3" color="green"/>
-                                <div>
-                                    <a className="wd-assignment-link" href="#/Kanbas/Courses/1234/Assignments/3" style={{ color: "black", fontWeight: "bold", textDecoration: "none" }}>A3</a>
-                                    <div><span className="text-danger">Multiple Modules</span> |
-                                        Not Available Until May 20 at 12:00am |
-                                    </div>
-                                    <div>Due May 27 at 11:59pm | 100pts</div>
-                                </div>
-                            </div>
-                            <div className="float-end">
-                                <GreenCheckmark/>
-                                <IoEllipsisVertical className="fs-4"/>
-                            </div>
-                        </li>
+                                </li>
+                            ))}
                     </ul>
                 </li>
             </ul>
