@@ -34,26 +34,9 @@ export default function Assignments() {
         fetchAssignments();
     }, []);
 
-    // const handleAddAssignment = () => {
-    //     const newId = assignments[assignments.length - 1]._id + "0";
-    //     const newAssignment = {
-    //         _id: newId,
-    //         title: "New Assignment",
-    //         course: cid,
-    //         description: "",
-    //         totalPoints: 0,
-    //         dueDate: "",
-    //         availableDate: ""
-    //     };
-    //     dispatch(addAssignment(newAssignment));
-    //     navigate(newId);
-    // }
-
     const createAssignment = async () => {
         if (!cid) return;
-        const newId = assignments[assignments.length - 1]._id + "0";
         const newAssignment = {
-            _id: newId,
             title: "New Assignment",
             course: cid,
             description: "",
@@ -63,15 +46,8 @@ export default function Assignments() {
         };
         const assignment = await coursesClient.createAssignmentForCourse(cid, newAssignment);
         dispatch(addAssignment(assignment));
-        navigate(newId);
+        navigate(assignment._id);
     }
-
-    // const handleDelete = (assignmentID: any) => {
-    //     const confirmed = window.confirm("Are you sure you want to remove this assignment?");
-    //     if (confirmed) {
-    //         dispatch(deleteAssignment(assignmentID));
-    //     }
-    // }
 
     const removeAssignment = async (assignmentId: any) => {
         const confirmed = window.confirm("Are you sure you want to remove this assignment?");
@@ -128,8 +104,7 @@ export default function Assignments() {
 
                     <ul className="wd-lessons list-group rounded-0">
                         {assignments
-                            .filter((assignment: any) => assignment.course === cid)
-                            .map((assignment: any) => (
+                         .map((assignment: any) => (
                                 <li className="wd-lesson list-group-item p-3 ps-1 d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center">
                                         <BsGripVertical className="me-2 fs-3"/>

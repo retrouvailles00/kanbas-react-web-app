@@ -3,15 +3,39 @@ import CoursesNavigation from "./Navigation";
 import Modules from "./Modules";
 import Home from "./Home";
 import Assignments from "./Assignments";
+import Quizzes from "./Quizzes";
 import AssignmentEditor from "./Assignments/Editor";
 import {FaAlignJustify} from "react-icons/fa6";
 import PeopleTable from "./People/Table";
-import { courses } from "../Database";
+import * as coursesClient from "./client";
+import { useState, useEffect } from "react";
+import QuizDetail from "./Quizzes/Detail";
+import QuizEditor from "./Quizzes/Editor";
+import QuizPreview from "./Quizzes/Preview";
+import QuestionEditor from "./Quizzes/QuestionEditor";
+
 export default function Courses({ courses }: { courses: any[]; }) {
 
     const { cid } = useParams();
     const course = courses.find((course) => course._id === cid);
     const { pathname } = useLocation();
+    const [enrolledUsers, setEnrolledUsers] = useState<any[]>([]);
+
+    const fetchEnrolledUsersInCourse = async () => {
+        let enrolledUsers = [];
+        try {
+            enrolledUsers = await coursesClient.findUsersForCourse(course._id);
+            console.log(enrolledUsers);
+        } catch (error) {
+            console.error(error);
+        }
+        
+        setEnrolledUsers(enrolledUsers);
+    };
+
+    useEffect(() => {
+        fetchEnrolledUsersInCourse();
+    }, [course]);
 
     return (
         <div id="wd-courses" style={{marginLeft: '120px'}}>
@@ -29,7 +53,13 @@ export default function Courses({ courses }: { courses: any[]; }) {
                     <Route path="Modules" element={<Modules />} />
                     <Route path="Assignments" element={<Assignments />} />
                     <Route path="Assignments/:aid" element={<AssignmentEditor />} />
-                    <Route path="People" element={<PeopleTable />} />
+                    <Route path="People" element={<PeopleTable users={enrolledUsers} />} />
+                    <Route path="Quizzes" element={<Quizzes/>}/>
+                    <Route path="Quizzes/:qid" element={<QuizDetail />} />
+                    <Route path="Quizzes/:qid/Editor" element={<QuizEditor />} />
+                    {/* <Route path="Quizzes/:qid/Preview" element={<QuizPreview />} /> */}
+                    <Route path="Quizzes/:qid/Editor/AddQuestion" element={<QuestionEditor/>}/>
+                    <Route path="Quizzes/:qid/Editor/EditQuestion/:questionId" element={<QuestionEditor />} />
                 </Routes>
             </div></div>
         </div>
