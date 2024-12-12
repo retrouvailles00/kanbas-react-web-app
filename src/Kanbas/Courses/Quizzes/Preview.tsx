@@ -14,10 +14,14 @@ export default function QuizPreview() {
     
     const fetchQuestions = async () => {
         const questionsIds = await client.findQuestionsForQuiz(qid as string);
-        const questionPromises = questionsIds.map((questionId: string) =>
+        const uniqueQuestionsIds = questionsIds.filter((value:any, index: Number, self: any) => {
+            return self.indexOf(value) === index;
+        });
+        const questionPromises = uniqueQuestionsIds.map((questionId: string) =>
             client.findQuestionById(qid as string, questionId)
         );
         const questions = (await Promise.all(questionPromises)).flat();
+        console.log(questions);
         dispatch(setQuestions(questions));
     };
     const fetchQuiz = async () => {

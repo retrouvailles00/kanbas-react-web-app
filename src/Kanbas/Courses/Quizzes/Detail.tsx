@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import * as client from "./client";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function QuizDetail() {
     
     const { cid, qid } = useParams();
     const navigate = useNavigate();
     const [quiz, setQuiz] = useState<any>({});
-
+    const { currentUser } = useSelector((state: any) => state.accountReducer);
 
     const fetchQuiz= async () => {
         if (!qid) return;
@@ -19,25 +20,60 @@ export default function QuizDetail() {
     }, [qid]);
     if (!qid) return null;
 
+    const getAvailability = (quiz: any) => {
+        const currentDate = new Date();
+        const availableDate = new Date(quiz.availableDate);
+        const dueDate = new Date(quiz.dueDate);
+        if (currentDate > dueDate) {
+            return 'Closed';
+        }
+        if (currentDate >= availableDate && currentDate <= dueDate) {
+            return 'Available';
+        }
+        if (currentDate < availableDate) {
+            return `Not available until ${availableDate.toLocaleDateString()}`;
+        }
+        return 'Unknown Availability';
+    };
+
+    const handlePreview = () => {
+        const availability = getAvailability(quiz);
+        if (availability === 'Closed') {
+            window.alert("exam closed");
+        } else {
+            navigate("Exam")
+        }
+    }
+
+    const handleEdit = () => {
+        if (currentUser && currentUser.role === 'FACULTY') {
+            navigate("Editor")
+        } else {
+            window.alert("student can not edit quiz");
+        }
+    }
 
     return (
+        
         <div className="container" id="wd-quiz-preview">
             <div className="d-flex mb-3 align-items-center">
-                <button className="btn btn-secondary d-flex align-items-center"
-                    onClick={() => navigate("Preview")}>
-                    Preview
-                </button>
-                <button className="btn btn-secondary d-flex align-items-center"
-                    onClick={() => navigate("Editor")}>
-                    Edit
-                </button>
+                
+                    <button className="btn btn-secondary d-flex align-items-center"
+                        onClick={handlePreview}>
+                        Preview
+                    </button>
+                    <button className="btn btn-secondary d-flex align-items-center"
+                    onClick={handleEdit}>
+                        Edit
+                    </button>
+                
             </div>
             
 
             <b></b>           <span className="wd-quiz-title">         {quiz.quizTitle}         </span> <br />
-            <b>Quiz Type</b>   <span className="wd-quiz-type">         {quiz.type}         </span> <br />
+            <b>Quiz Type</b>   <span className="wd-quiz-type">         {quiz.quizType}         </span> <br />
             <b>Points</b>   <span className="wd-quiz-points">         {quiz.points}         </span> <br />
-            <b>Assignment Group</b>   <span className="wd-quiz-group">         {quiz.group}         </span> <br />
+            <b>Assignment Group</b>   <span className="wd-quiz-group">         {quiz.assignmentGroup}         </span> <br />
             <b>Shuffle Answers</b>   <span className="wd-quiz-type">         Yes         </span> <br />
             <b>Time Limit</b>   <span className="wd-quiz-time-limit">         {quiz.timeLimit}         </span> <br />
             <b>Multiple Attempts</b>   <span className="wd-quiz-multiple-attempts">         yes         </span> <br />

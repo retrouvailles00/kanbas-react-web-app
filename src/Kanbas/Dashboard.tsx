@@ -84,7 +84,6 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
         try {
             await enrollClient.deleteEnrollment(courseId, currentUser._id);
             dispatch(unenroll(courseId));
-            console.log(enrolledCourses.length);
             const updatedDisplayList = displayedCourses.filter(
                 (c: any) => c._id !== courseId);
             setDisplayedCourses(updatedDisplayList);
@@ -134,11 +133,13 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
 
             <div id="wd-dashboard-courses" className="row">
                 <div className="row row-cols-1 row-cols-md-5 g-4">
+                    
                     {courses.map((course: any) => {
+                        if (course) {
                         return (
                             <div className="wd-dashboard-course col" style={{ width: "300px" }} key={course._id}>
                                 <div className="card rounded-3 overflow-hidden">
-                                    <img src={"./logo192.png"} width="100%" height={160} alt={course.name}/>
+                                    <img src={"./logo192.png"} width="100%" height={160} alt={""}/>
                                     <div className="card-body">
                                         <h5 className="wd-dashboard-course-title card-title">
                                             {enrolling && (
@@ -195,7 +196,7 @@ export default function Dashboard({ courses, course, setCourse, addNewCourse,
                                     </div>
                                 </div>
                             </div>
-                        );
+                        );}
                     })}
                 </div>
             </div>

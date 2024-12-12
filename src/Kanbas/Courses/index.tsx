@@ -12,7 +12,9 @@ import { useState, useEffect } from "react";
 import QuizDetail from "./Quizzes/Detail";
 import QuizEditor from "./Quizzes/Editor";
 import QuizPreview from "./Quizzes/Preview";
+import Exam from "./Quizzes/Exam";
 import QuestionEditor from "./Quizzes/QuestionEditor";
+import FinishQuiz from "./Quizzes/FinishQuiz";
 
 export default function Courses({ courses }: { courses: any[]; }) {
 
@@ -57,7 +59,8 @@ export default function Courses({ courses }: { courses: any[]; }) {
                     <Route path="Quizzes" element={<Quizzes/>}/>
                     <Route path="Quizzes/:qid" element={<QuizDetail />} />
                     <Route path="Quizzes/:qid/Editor" element={<QuizEditor />} />
-                    {/* <Route path="Quizzes/:qid/Preview" element={<QuizPreview />} /> */}
+                    <Route path="Quizzes/:qid/Exam" element={<Exam />} />
+                    <Route path="Quizzes/:qid/Exam/Finished/:responseId" element={<FinishQuiz />} />
                     <Route path="Quizzes/:qid/Editor/AddQuestion" element={<QuestionEditor/>}/>
                     <Route path="Quizzes/:qid/Editor/EditQuestion/:questionId" element={<QuestionEditor />} />
                 </Routes>

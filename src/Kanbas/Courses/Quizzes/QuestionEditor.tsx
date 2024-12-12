@@ -67,6 +67,7 @@ export default function QuestionEditor() {
         setAnswers([{ text: '', isCorrect: false }]);
         setTrueFalseAnswer('');
         setQuestionType('multiple-choice');
+        navigate(-1);
     };
 
     const handleUpdateQuestion = async () => {
@@ -93,7 +94,12 @@ export default function QuestionEditor() {
         } else {
             // Create new question
             const createdQuestion = await client.createQuestion(qid as string, newQuestion);
-            console.log(createdQuestion);
+            const quiz = await client.findQuizById(qid as string);
+            const updatedQuiz = {
+                ...quiz,
+                questions: [...quiz.questions, createdQuestion._id],
+            };
+            const status = await client.updateQuiz(updatedQuiz)
             navigate(-1);
         }
     };
